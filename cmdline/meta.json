@@ -1,6 +1,6 @@
 {
     "name" : "CmdLine",
-    "version" : 1,
+    "version" : 2,
     "required emesene version" : "2.12.2",
     "configurable" : false,
     "description" : "Run some commands from window chat",

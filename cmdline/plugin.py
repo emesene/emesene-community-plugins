@@ -108,6 +108,10 @@ class Plugin(PluginBase):
                             message.body = "<b>Please install tinyurl</b>"
                         except ValueError:
                             message.body = "<b>Check your URL</b>"
+                elif command == "/all":
+                    if len(text) > 1:
+                        for conv in self.session.conversations.itervalues():
+                            conv._on_send_message(' '.join(text[1:]))
 
             else:
                 message.body = "<b>Please type /help for more help</b>"
