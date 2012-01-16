@@ -107,7 +107,9 @@ class Plugin(PluginBase):
                         except NameError:
                             message.body = "<b>Please install tinyurl</b>"
                         except ValueError:
-                            message.body = "<b>Check your URL</b>"
+                            message.body = "<b>Check your URL please</b>"
+                        except urllib2.URLError:
+                            message.body = "<b>Check your URL please</b>"
                 elif command == "/all":
                     if len(text) > 1:
                         for conv in self.session.conversations.itervalues():
