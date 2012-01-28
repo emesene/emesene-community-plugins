@@ -78,13 +78,9 @@ class Plugin(PluginBase):
                 elif command == "/run":
                     if len(chck) == 2:
                         try:
-                            c = ' '.join(text[1:])
-                            text = c.split('[')
-                            subprocess.Popen([command[:-1], self.homedir+text[1][:-1]])
+                            subprocess.Popen([text[1], self.homedir+chck[1][:-1]])
                         except NameError:
                             message.body = "<b>Command not found</b>"
-                        except OSError:
-                            message.body = "<b>File not found</b>"
                     elif len(text) == 2:
                         try:
                             subprocess.Popen([text[1]])
@@ -107,9 +103,9 @@ class Plugin(PluginBase):
                         except NameError:
                             message.body = "<b>Please install tinyurl</b>"
                         except ValueError:
-                            message.body = "<b>Check your URL please</b>"
+                            message.body = "<b>Check your URL</b>"
                         except urllib2.URLError:
-                            message.body = "<b>Check your URL please</b>"
+                            message.body = "<b>Check your URL</b>"
                 elif command == "/all":
                     if len(text) > 1:
                         for conv in self.session.conversations.itervalues():
