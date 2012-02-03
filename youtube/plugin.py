@@ -21,10 +21,13 @@ import e3
 import re
 import urlparse
 import urllib
-import BeautifulSoup
+try:
+    import BeautifulSoup
+except ImportError:
+    pass
 
 class Plugin(PluginBase):
-    _description = "Showing youtube video's thumb in window chat"
+    _description = "Showing youtube video's thumb in conversation"
     _authors = { 'James Axl' : 'axlrose112@gmail.com' }
 
     def __init__(self):
@@ -52,15 +55,18 @@ class Plugin(PluginBase):
                 url_data = urlparse.urlparse(msg_text)
                 query = urlparse.parse_qs(url_data.query)
                 video_id = query["v"][0]
-                if video_id:		
-                        src = BeautifulSoup.BeautifulSoup(urllib.urlopen("http://www.youtube.com/watch?v=%s"%video_id))
-                        title=src.title.string.split('\n')[1].strip()
-                        image="""<a  href="http://www.youtube.com/v/%s">
+                if video_id:
+                        try:		
+                            src = BeautifulSoup.BeautifulSoup(urllib.urlopen("http://www.youtube.com/watch?v=%s"%video_id))
+                            title=src.title.string.split('\n')[1].strip()
+                            image="""<a  href="http://www.youtube.com/v/%s">
                                  <img  src="http://img.youtube.com/vi/%s/hqdefault.jpg" width="150" height="150"></a> <h3>%s</h3>"""%(video_id,video_id,title)
-                        url=e3.Message(e3.Message.TYPE_INFO, image,account,timestamp=None)     
-                        self.session.gui_message(cid, account, url)
-                        
-
+                            url=e3.Message(e3.Message.TYPE_INFO, image,account,timestamp=None)                   
+                        except NameError:
+                            warn="""<P><B>BeautifulSoup</B> is required by youtube plugin please run <B>easy_install BeautifulSoup</B> or <B>pip install BeautifulSoup</B> </P> """
+                            url=e3.Message(e3.Message.TYPE_INFO, warn,account,timestamp=None)
+                self.session.gui_message(cid, account, url)
+                
     def _on_message(self, cid, account, message, cedict=None):	
         user = self.session.contacts.get(account)
         msg_text=message.body
