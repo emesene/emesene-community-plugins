@@ -29,7 +29,7 @@ except ImportError:
 
 
 class Plugin(PluginBase):
-    _description = 'Run some commands from window chat'
+    _description = 'Run some commands in conversation'
     _authors = { 'James Axl' : 'axlrose112@gmail.com' , 'Sbte' : '' }
 
     def __init__(self):
@@ -52,22 +52,53 @@ class Plugin(PluginBase):
     def open_conv(self, cid, account):
         conversation = self.session.get_conversation(cid)
         conversation.input.on_send_message = Fun(self.custom_on_send_message, conversation)
-
+                
+    def _gui_message_(self,text,conv):
+        cedict = conv.emcache.parse()
+        custom_emoticons = gui.base.MarkupParser.get_custom_emotes(text, cedict)
+        message = e3.Message(e3.Message.TYPE_INFO, text, None, None) 
+        self.session.send_message(conv.cid, text, conv.cstyle, cedict, custom_emoticons)
+        message.body="<b><a href = \"%s\">%s</a> was successfully generated and sent :)</b>" % (text, text)
+        self.session.gui_message(conv.cid, '', message)
+        
+    def check_tiny(self,conversation,url,message,group=True):
+        if len(url) != 2:
+            message.body = "<b>Please type /help for more help</b>"
+        else:
+            req = urllib2.Request(url[1])
+            try:
+                urllib2.urlopen(req)
+                url = tinyurl.create_one(url[1])
+                if group:
+                    for conv in self.session.conversations.itervalues():
+                        self._gui_message_(url,conv)
+                else:
+                    self._gui_message_(url,conversation)
+                       
+            except NameError:
+                message.body = "<b>Please install tinyurl e.g: easy_install tinyurl or pip install tiny</b>"
+            except ValueError:
+                message.body = "<b>Check your URL please</b>"
+            except urllib2.URLError:
+                message.body = "<b>Check your URL please</b>"
+            
     def custom_on_send_message(self, conversation, text):
         cid = conversation.cid
         if text.startswith("/"):
-            commands = ["/help", "/clear", "/nudge", "/run", "/tiny", "/all"]
-            chck = text.split('[')
-            text = text.split(' ')
+            commands = ["/help", "/clear", "/nudge", "/run", "/tiny", "/all","/tiny-all"]
+            text = text.split()
             command = text[0]
             message = e3.Message(e3.Message.TYPE_INFO, '', None, None)
             if command in commands:
                 if command == "/help":
                     help = """<ul><strong><li>/clear for cleaning chat window.</li></strong>
                             <strong><li>/nudge for sending nudge to user.</li></strong>
-                            <strong><li>/run for running command e.g /run mplayer [fatman.mp3], /run firefox or /run mplayer [james axl.flv]
+                            <strong><li>/run for running command e.g /run mplayer <I>fatman.mp3</I>, /run firefox or /run mplayer <I>james axl.flv</I>
                             <span>DEFAULT PATH IS YOUR HOME DIRECTORY</span>.</li></strong>
-                            <strong><li>/tiny for sending large URL e.g /tiny large_url.</li></strong<ul>"""
+                            <strong><li>/tiny for sending large URL e.g /tiny large_url.</li></strong>
+			    <strong><li>/all for sending message to all conversations.</li></strong>
+			    <strong><li>/tiny(all) for sending large URL to all conversations.</li></strong>
+			    <ul>"""
                     message = e3.Message(e3.Message.TYPE_INFO, help, '', timestamp = None)
                 elif command == "/clear":
                     conversation.output.clear()
@@ -76,41 +107,26 @@ class Plugin(PluginBase):
                     message.body = _('You just sent a nudge!')
                     self.soundPlayer.play(gui.theme.sound_theme.sound_nudge)
                 elif command == "/run":
-                    if len(chck) == 2:
+                    if len(text) >= 3 :
                         try:
-                            subprocess.Popen([text[1], self.homedir+chck[1][:-1]])
+                            subprocess.Popen([text[1], self.homedir+' '.join(text[2:])])
                         except NameError:
                             message.body = "<b>Command not found</b>"
-                    elif len(text) == 2:
+                    elif len(text) < 3 and len(text)>1:
                         try:
                             subprocess.Popen([text[1]])
                         except OSError:
                             message.body = "<b>Command not found</b>"
-                    elif len(text) == 1:
-                             message.body = "<b>Please type /help for more help</b>"
-                elif command == "/tiny":
-                    if len(text) != 2:
-                        message.body = "<b>Please type /help for more help</b>"
                     else:
-                        req = urllib2.Request(text[1])
-                        try:
-                            urllib2.urlopen(req)
-                            url = tinyurl.create_one(text[1])
-                            message = e3.Message(e3.Message.TYPE_MESSAGE, url, None, None) #It is look ilogical but i need it :).
-                            self.session.gui_message(cid, '', message)
-                            message.type = e3.Message.TYPE_INFO
-                            message.body = "<b><a href = \"%s\">%s</a> was successfully generated and sent :)</b>" % (url, url)
-                        except NameError:
-                            message.body = "<b>Please install tinyurl</b>"
-                        except ValueError:
-                            message.body = "<b>Check your URL</b>"
-                        except urllib2.URLError:
-                            message.body = "<b>Check your URL</b>"
+                            message.body = "<b>Please type /help for more help</b>"
+                elif command == "/tiny":
+                    self.check_tiny(conversation,text,message,False)        
                 elif command == "/all":
                     if len(text) > 1:
                         for conv in self.session.conversations.itervalues():
                             conv._on_send_message(' '.join(text[1:]))
-
+                elif command == "/tiny-all":
+                    self.check_tiny(None,text,message)
             else:
                 message.body = "<b>Please type /help for more help</b>"
 
@@ -119,7 +135,7 @@ class Plugin(PluginBase):
         else:
             conversation._on_send_message(text)
 
-class Fun(object):                  #Sbte who has the idea for using this class instead of change emesene code.
+class Fun(object):  #Sbte who had the idea for using this class instead of change emesene code.
     def __init__(self, fun, conv):
         self.fun = fun
         self.conv = conv

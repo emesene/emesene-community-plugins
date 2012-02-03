@@ -1,8 +1,8 @@
 {
     "name" : "CmdLine",
-    "version" : 3,
+    "version" : 4,
     "required emesene version" : "2.12.2",
     "configurable" : false,
-    "description" : "Run some commands from window chat",
+    "description" : "Run some commands in conversation",
     "authors" : [["James Axl", "axlrose11@gmail.com"]]
 }
