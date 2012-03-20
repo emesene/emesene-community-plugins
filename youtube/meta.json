@@ -1,8 +1,8 @@
 {
     "name" : "Youtube",
-    "version" : 2,
+    "version" : 3,
     "required emesene version" : "2.12.2",
     "configurable" : false,
-    "description" : "Showing youtube video's thumb in conversation",
+    "description" : "Playing youtube video",
     "authors" : [["James Axl", "axlrose11@gmail.com"]]
 }

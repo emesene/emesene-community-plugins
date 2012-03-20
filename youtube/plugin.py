@@ -15,19 +15,21 @@
 #    You should have received a copy of the GNU General Public License
 #    along with emesene; if not, write to the Free Software
 #    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-
+import tempfile
 from plugin_base import PluginBase
 import e3
 import re
 import urlparse
 import urllib
+from mydialog import WatchVideo
+import os
 try:
     import BeautifulSoup
 except ImportError:
     pass
 
 class Plugin(PluginBase):
-    _description = "Showing youtube video's thumb in conversation"
+    _description = "Playing youtube video"
     _authors = { 'James Axl' : 'axlrose112@gmail.com' }
 
     def __init__(self):
@@ -36,6 +38,7 @@ class Plugin(PluginBase):
     def start(self, session):
         self.session = session
         self.session.signals.conv_message.subscribe(self._on_message)
+        self.watch=WatchVideo()
         return True
 
     def stop(self):
@@ -48,6 +51,7 @@ class Plugin(PluginBase):
 
 
     def check_url(self,cid, account, msg):
+        
         s = msg
         l=re.findall(r'(http?://www.youtube.com/watch\S+)', s)
         if len(l) >= 1:
@@ -59,14 +63,20 @@ class Plugin(PluginBase):
                         try:		
                             src = BeautifulSoup.BeautifulSoup(urllib.urlopen("http://www.youtube.com/watch?v=%s"%video_id))
                             title=src.title.string.split('\n')[1].strip()
-                            image="""<a  href="http://www.youtube.com/v/%s">
-                                 <img  src="http://img.youtube.com/vi/%s/hqdefault.jpg" width="150" height="150"></a> <h3>%s</h3>"""%(video_id,video_id,title)
-                            url=e3.Message(e3.Message.TYPE_INFO, image,account,timestamp=None)                   
+                            urllib.urlretrieve ("http://img.youtube.com/vi/%s/hqdefault.jpg"%video_id,tempfile.gettempdir()+"/%s.jpg"%video_id)
+                            image=tempfile.gettempdir()+"/%s.jpg"%video_id
+                            if self.watch.bl:                    
+                                self.watch.set_video(title,"http://www.youtube.com/v/%s"%video_id,image,account)
+                            else:
+                                self.watch.init_info()
+                                self.watch.set_video(title,"http://www.youtube.com/v/%s"%video_id,image,account)
+                                self.watch.win_show()                 
                         except NameError:
                             warn="""<P><B>BeautifulSoup</B> is required by youtube plugin please run <B>easy_install BeautifulSoup</B> or <B>pip install BeautifulSoup</B> </P> """
                             url=e3.Message(e3.Message.TYPE_INFO, warn,account,timestamp=None)
-                self.session.gui_message(cid, account, url)
+                            self.session.gui_message(cid, account, url)
                 
+                    
     def _on_message(self, cid, account, message, cedict=None):	
         user = self.session.contacts.get(account)
         msg_text=message.body

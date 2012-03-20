@@ -1,1 +1,1 @@
-""" emesene plugins - youtube video thumb """
+""" emesene plugins - Playing youtube video """
