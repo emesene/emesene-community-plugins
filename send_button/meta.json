@@ -1,0 +1,8 @@
+{
+    "name" : "Send Button",
+    "version" : 1,
+    "required emesene version" : "2.12.1",
+    "configurable" : false,
+    "description" : "Show the Send button in conversation window",
+    "authors" : [["moneycat", "moneycat.tw gmail com"]]
+}
