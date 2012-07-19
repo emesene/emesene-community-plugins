@@ -1,6 +1,6 @@
 {
     "name" : "Send Button",
-    "version" : 1,
+    "version" : 2,
     "required emesene version" : "2.12.1",
     "configurable" : false,
     "description" : "Show the Send button in conversation window",

@@ -16,10 +16,8 @@
 #    along with emesene; if not, write to the Free Software
 #    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-import extension
 from plugin_base import PluginBase
-
-import SendButton
+import gtk
 
 class Plugin(PluginBase):
     _description = 'Show the Send button in conversation window'
@@ -29,18 +27,50 @@ class Plugin(PluginBase):
         PluginBase.__init__(self)
 
     def start(self, session):
-        if hasattr(extension, 'unregister'):
-            extension.register('conversation', SendButton.SendButton, force_default=True)
-        else:
-            extension.register('conversation', SendButton.SendButton)
-        extension.set_default('conversation', SendButton.SendButton)
+        '''start the plugin'''
+        self.session = session
+        self.session.signals.conv_started.subscribe(self.open_conv)
         return True
 
     def stop(self):
-        if hasattr(extension, 'unregister'):
-            extension.unregister('conversation', SendButton.SendButton)
+        '''stop the plugin'''
+        self.session.signals.conv_started.unsubscribe(self.open_conv)
         return False
 
     def config(self, session):
         '''config the plugin'''
         pass
+
+    def open_conv(self, cid, account):
+        '''add the button when open a conversation'''
+        conversation = self.session.get_conversation(cid)
+
+        if conversation:
+            # find the widget
+            frame_input = conversation.panel.get_children()[1]
+            input_box = frame_input.get_children()[0]
+
+            # deattach the widget
+            input_box.remove(conversation.input)
+
+            # attach the new widget
+            button = gtk.Button(_('Send'))
+            button.connect('clicked',
+                lambda *args: conversation.input._textbox.emit('message-send'))
+            button.set_sensitive(False)
+            button.show()
+
+            hhbox = gtk.HButtonBox()
+            hhbox.add(button)
+            hhbox.show()
+
+            hbox = gtk.HBox()
+            hbox.pack_start(conversation.input, True, True)
+            hbox.pack_start(hhbox, False, False)
+            hbox.show()
+        
+            input_box.pack_start(hbox, True, True)
+
+            # enable or disable the button, depends on input area
+            conversation.input._buffer.connect('changed',
+                lambda widget: button.set_sensitive(widget.get_char_count()))
