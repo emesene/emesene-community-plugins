@@ -1,0 +1,8 @@
+{
+    "name" : "Capitalization",
+    "version" : 1,
+    "required emesene version" : "2.12.6",
+    "configurable" : false,
+    "description" : "Capitalize the first letter of a message",
+    "authors" : [["c10ud", ""]]
+}
