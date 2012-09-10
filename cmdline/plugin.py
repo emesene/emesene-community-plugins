@@ -22,6 +22,7 @@ import e3
 import gui
 import subprocess
 import urllib2
+
 try:
     import tinyurl  #you need to install tinyurl for using /tiny
 except ImportError:
@@ -85,7 +86,8 @@ class Plugin(PluginBase):
     def custom_on_send_message(self, conversation, text):
         cid = conversation.cid
         if text.startswith("/"):
-            commands = ["/help", "/clear", "/nudge", "/run", "/tiny", "/all","/tiny-all"]
+            commands = ["/help", "/clear", "/nudge", "/run", "/tiny", "/all","/tiny-all",
+            "/message","/online","/away","/busy","/invisible","/block","/idle"]
             text = text.split()
             command = text[0]
             message = e3.Message(e3.Message.TYPE_INFO, '', None, None)
@@ -97,7 +99,9 @@ class Plugin(PluginBase):
                             <span>DEFAULT PATH IS YOUR HOME DIRECTORY</span>.</li></strong>
                             <strong><li>/tiny for sending large URL e.g /tiny large_url.</li></strong>
 			    <strong><li>/all for sending message to all conversations.</li></strong>
-			    <strong><li>/tiny(all) for sending large URL to all conversations.</li></strong>
+			    <strong><li>/tiny-all for sending large URL to all conversations.</li></strong>
+                <strong><li>Change status, <b>/online "Status"<b/>, <b>/busy "Status"<b/>, <b>/away "Status"<b/>, <b>/idle "Status"<b/>, <b>/invisible<b/>.</li></strong>
+                <strong><li>/message to set message of the session.</li></strong>
 			    <ul>"""
                     message = e3.Message(e3.Message.TYPE_INFO, help, '', timestamp = None)
                 elif command == "/clear":
@@ -127,6 +131,23 @@ class Plugin(PluginBase):
                             conv._on_send_message(' '.join(text[1:]))
                 elif command == "/tiny-all":
                     self.check_tiny(None,text,message)
+                elif command == "/online":
+                    self.session.set_status(e3.status.ONLINE)
+                    if text[1:]: self.session.set_message(' '.join(text[1:]))
+                elif command == "/invisible":
+                    self.session.set_status(e3.status.OFFLINE)
+                    if text[1:]: self.session.set_message(' '.join(text[1:]))
+                elif command == "/busy":
+                    self.session.set_status(e3.status.BUSY)
+                    if text[1:]: self.session.set_message(' '.join(text[1:]))
+                elif command == "/away":
+                    self.session.set_status(e3.status.AWAY)
+                    if text[1:]: self.session.set_message(' '.join(text[1:]))
+                elif command == "/idle":
+                    self.session.set_status(e3.status.IDLE)
+                    if text[1:]: self.session.set_message(' '.join(text[1:]))  
+                elif command == "/message":
+                    self.session.set_message(' '.join(text[1:]))
             else:
                 message.body = "<b>Please type /help for more help</b>"
 
